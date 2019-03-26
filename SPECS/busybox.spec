@@ -1,7 +1,7 @@
 Summary: Busybox binary providing simplified versions of system commands
 Name: busybox
 Version: 1.22.1
-Release: 2
+Release: 2%dist
 License: GPL
 Group: System Environment/Daemons
 #Source0: http://busybox.net/downloads/%{name}-%{version}.tar.bz2
