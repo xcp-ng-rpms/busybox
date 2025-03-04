@@ -1,0 +1,31 @@
+From f11c6989ba40f6bed8c4b4f0b6b7578aba3a63f9 Mon Sep 17 00:00:00 2001
+From: Denys Vlasenko <vda.linux@googlemail.com>
+Date: Tue, 25 Oct 2016 14:25:52 +0200
+Subject: [PATCH] udhcpc: check read of overload option data byte to be within
+ packet
+
+function                                             old     new   delta
+udhcp_get_option                                     220     225      +5
+
+Signed-off-by: Denys Vlasenko <vda.linux@googlemail.com>
+---
+ networking/udhcp/common.c | 3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
+
+diff --git a/networking/udhcp/common.c b/networking/udhcp/common.c
+index ad1e78e68f19..04d1ac917bce 100644
+--- a/networking/udhcp/common.c
++++ b/networking/udhcp/common.c
+@@ -266,7 +266,8 @@ uint8_t* FAST_FUNC udhcp_get_option(struct dhcp_packet *packet, int code)
+ 		}
+ 
+ 		if (optionptr[OPT_CODE] == DHCP_OPTION_OVERLOAD) {
+-			overload |= optionptr[OPT_DATA];
++			if (len >= 3)
++				overload |= optionptr[OPT_DATA];
+ 			/* fall through */
+ 		}
+ 		optionptr += len;
+-- 
+2.45.2
+
