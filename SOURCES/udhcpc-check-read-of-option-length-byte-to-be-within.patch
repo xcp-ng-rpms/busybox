@@ -1,0 +1,49 @@
+From f9beeb22e2a4128ed85a8dc267d0823e5cfd3f47 Mon Sep 17 00:00:00 2001
+From: Brian Foley <bpfoley@google.com>
+Date: Tue, 25 Oct 2016 14:20:55 +0200
+Subject: [PATCH] udhcpc: check read of option length byte to be within packet
+
+function                                             old     new   delta
+udhcp_get_option                                     215     220      +5
+udhcp_run_script                                     802     803      +1
+
+Signed-off-by: Brian Foley <bpfoley@google.com>
+Signed-off-by: Denys Vlasenko <vda.linux@googlemail.com>
+(stripped out udhcpc changes)
+Signed-off-by: Ross Lagerwall <ross.lagerwall@citrix.com>
+---
+ networking/udhcp/common.c | 8 +++++++-
+ 2 files changed, 9 insertions(+), 3 deletions(-)
+
+diff --git a/networking/udhcp/common.c b/networking/udhcp/common.c
+index e7c8587913f3..ad1e78e68f19 100644
+--- a/networking/udhcp/common.c
++++ b/networking/udhcp/common.c
+@@ -224,9 +224,12 @@ uint8_t* FAST_FUNC udhcp_get_option(struct dhcp_packet *packet, int code)
+ 	rem = sizeof(packet->options);
+ 	while (1) {
+ 		if (rem <= 0) {
++ complain:
+ 			bb_error_msg("bad packet, malformed option field");
+ 			return NULL;
+ 		}
++
++		/* DHCP_PADDING and DHCP_END have no [len] byte */
+ 		if (optionptr[OPT_CODE] == DHCP_PADDING) {
+ 			rem--;
+ 			optionptr++;
+@@ -249,10 +252,13 @@ uint8_t* FAST_FUNC udhcp_get_option(struct dhcp_packet *packet, int code)
+ 			}
+ 			break;
+ 		}
++
++		if (rem <= OPT_LEN)
++			goto complain; /* complain and return NULL */
+ 		len = 2 + optionptr[OPT_LEN];
+ 		rem -= len;
+ 		if (rem < 0)
+-			continue; /* complain and return NULL */
++			goto complain; /* complain and return NULL */
+ 
+ 		if (optionptr[OPT_CODE] == code) {
+ 			log_option("Option found", optionptr);
